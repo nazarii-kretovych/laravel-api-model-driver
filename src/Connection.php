@@ -33,7 +33,7 @@ class Connection extends ConnectionBase
             $max_per_page = $this->getConfig('default_params')['per_page'];
 
             // Get full URL.
-            $fullUrl = $this->getConfig('api_url_pref') . $query;
+            $fullUrl = $this->getDatabaseName() . $query;
 
             // If the full URL is too long, we need to split it.
             if (strlen($fullUrl) > 5000) {
