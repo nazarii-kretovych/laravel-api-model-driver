@@ -1,0 +1,22 @@
+{
+    "name": "nazarii-kretovych/laravel-api-model-driver",
+    "description": "Laravel API Model Driver",
+    "type": "library",
+    "require": {
+        "php": "^7.2",
+        "guzzlehttp/guzzle": "^6.5",
+        "illuminate/database": "^7.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nazarii Kretovych",
+            "email": "nazarii.kretovych@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "NazariiKretovych\\LaravelApiModelDriver\\": "src"
+        }
+    }
+}
