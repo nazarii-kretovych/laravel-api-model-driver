@@ -38,7 +38,7 @@ class Connection extends ConnectionBase
             $client = app(Client::class);
             $json = $this->getResponse($client, $url);
 
-            return $json['data'];
+            return $json;
         });
     }
 
