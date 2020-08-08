@@ -41,7 +41,6 @@ class Grammar extends GrammarBase
                     $params[$where['column']] = $where['value'];
                     break;
             }
-            $this->addWhereClause($where, $params);
         }
 
         $url = "/$query->from";
