@@ -4,17 +4,17 @@ namespace NazariiKretovych\LaravelApiModelDriver;
 
 use GuzzleHttp\Client;
 use Illuminate\Database\Connection as ConnectionBase;
-use Illuminate\Database\Grammar;
+use Illuminate\Database\Grammar as GrammerBase;
 use function json_decode;
 
 class Connection extends ConnectionBase
 {
     /**
-     * @return Grammar
+     * @return GrammerBase
      */
     protected function getDefaultQueryGrammar()
     {
-        $grammar = app(ApiGrammar::class);
+        $grammar = app(Grammar::class);
         $query = $this->getConfig('query');
         if ($query) {
             $grammar->setDefaultQueryString($query);
