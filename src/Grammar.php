@@ -7,26 +7,16 @@ use Illuminate\Database\Query\Grammars\Grammar as GrammarBase;
 
 class Grammar extends GrammarBase
 {
-    /**
-     * @var string[]
-     */
-    private $defaultQueryString = [];
+    private $config = [];
 
     /**
-     * @return string[]
+     * @param array $config
+     * @return Grammar
      */
-    public function getDefaultQueryString(): array
+    public function setConfig(array $config): self
     {
-        return $this->defaultQueryString;
-    }
+        $this->config = $config;
 
-    /**
-     * @param string[] $defaultQueryString
-     * @return ApiGrammar
-     */
-    public function setDefaultQueryString(array $defaultQueryString): self
-    {
-        $this->defaultQueryString = $defaultQueryString;
         return $this;
     }
 
@@ -36,40 +26,34 @@ class Grammar extends GrammarBase
      */
     public function compileSelect(Builder $query): string
     {
-        $queryString = $this->getDefaultQueryString();
+        // Get params.
+        $params = $this->config['default_params'] ?? [];
         if ($query->limit) {
-            $queryString['per_page'] = $query->limit;
+            $params['per_page'] = $query->limit;
         }
-
-        // Add the where clauses to the query string.
         foreach ($query->wheres as $where) {
-            $queryString = $this->addWhereClause($where, $queryString);
+            switch ($where['type']) {
+                case 'In':
+                    $params[$where['column']] = $where['values'];
+                    break;
+
+                default:
+                    $params[$where['column']] = $where['value'];
+                    break;
+            }
+            $this->addWhereClause($where, $params);
         }
 
-        if (empty($queryString)) {
-            return '/' . $query->from;
+        $url = "/$query->from";
+        if (!empty($params)) {
+            $url .= '?';
+            $url .= Str::httpBuildQuery(
+                $params,
+                !empty($this->config['pluralize_array_query_params']),
+                $this->config['pluralize_except'] ?? [],
+            );
         }
 
-        return '/' . $query->from . '?' . http_build_query($queryString);
-    }
-
-    /**
-     * @param string[] $where
-     * @param mixed[] $queryString
-     * @return string[]
-     */
-    private function addWhereClause(array $where, array $queryString): array
-    {
-        switch ($where['type']) {
-            default:
-                $queryString[$where['column']] = $where['value'];
-                break;
-
-            case 'In':
-                $queryString[$where['column']] = $where['values'];
-                break;
-        }
-
-        return $queryString;
+        return $url;
     }
 }

@@ -1,10 +1,15 @@
 {
     "name": "nazarii-kretovych/laravel-api-model-driver",
-    "description": "Laravel API Model Driver",
+    "description": "API driver for Laravel 7 Eloquent models",
+    "keywords": [
+        "laravel",
+        "database driver",
+        "api",
+        "eloquent"
+    ],
     "type": "library",
     "require": {
         "php": "^7.2",
-        "guzzlehttp/guzzle": "^6.5",
         "illuminate/database": "^7.0"
     },
     "license": "MIT",
@@ -18,5 +23,14 @@
         "psr-4": {
             "NazariiKretovych\\LaravelApiModelDriver\\": "src"
         }
-    }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "NazariiKretovych\\LaravelApiModelDriver\\ServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

@@ -9,21 +9,12 @@ class ServiceProvider extends ServiceProviderBase
 {
     public function register()
     {
-        ConnectionBase::resolverFor('api', static function ($connection, $database, $prefix, $config) {
+        ConnectionBase::resolverFor('laravel_api_model_driver', static function ($connection, $database, $prefix, $config) {
             if (app()->has(Connection::class)) {
                 return app(Connection::class);
             }
 
             return new Connection($connection, $database, $prefix, $config);
         });
-
-        $this->mergeConfigFrom(__DIR__ . '/../config/api-model-driver.php', 'api-model-driver');
-    }
-
-    public function boot()
-    {
-        $this->publishes([
-            __DIR__ . '/../config/api-model-driver.php' => config_path('api-model-driver.php'),
-        ], 'config');
     }
 }
