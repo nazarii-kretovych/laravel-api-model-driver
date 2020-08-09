@@ -4,7 +4,6 @@ namespace NazariiKretovych\LaravelApiModelDriver;
 
 use Illuminate\Database\Connection as ConnectionBase;
 use Illuminate\Database\Grammar as GrammerBase;
-use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 class Connection extends ConnectionBase
@@ -110,9 +109,22 @@ class Connection extends ConnectionBase
     
     private function getJsonByUrl($url)
     {
-        return Http::withHeaders($this->getConfig('headers') ?: [])
-            ->get($url)
-            ->throw()
-            ->json();
+        // Get curl handler.
+        static $ch = null;
+        if ($ch === null) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FAILONERROR, true);
+        }
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getConfig('headers') ?: []);
+        curl_setopt($ch, CURLOPT_URL, $url);
+
+        // Call API.
+        $result = curl_exec($ch);
+        if (!$result) {
+            throw new RuntimeException("Failed to call $url");
+        }
+
+        return json_decode($result, true);
     }
 }

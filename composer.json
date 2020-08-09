@@ -10,6 +10,7 @@
     "type": "library",
     "require": {
         "php": "^7.2",
+        "ext-curl": "*",
         "illuminate/database": "^7.0"
     },
     "license": "MIT",
