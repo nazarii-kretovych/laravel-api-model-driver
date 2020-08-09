@@ -30,18 +30,28 @@ class Grammar extends GrammarBase
         // Get params.
         $params = $this->config['default_params'] ?? [];
         foreach ($query->wheres as $where) {
+            $key = $where['column'];
             switch ($where['type']) {
                 case 'Basic':
-                    $params[$where['column']] = $where['value'];
+                    $params[$key] = $where['value'];
                     break;
 
                 case 'In':
-                    $params[$where['column']] = $where['values'];
+                    $params[$key] = $where['values'];
+                    break;
+
+                // Support Laravel relationships.
+                case 'InRaw':
+                    $dotIx = strrpos($key, '.');
+                    if ($dotIx !== false) {
+                        $key = substr($key, $dotIx + 1);
+                    }
+                    $params[$key] = $where['values'];
                     break;
 
                 case 'between':
-                    $params['min_' . $where['column']] = $where['values'][0];
-                    $params['max_' . $where['column']] = $where['values'][1];
+                    $params["min_$key"] = $where['values'][0];
+                    $params["max_$key"] = $where['values'][1];
                     break;
 
                 default:
