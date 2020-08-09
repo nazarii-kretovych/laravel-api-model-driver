@@ -124,33 +124,41 @@ class Connection extends ConnectionBase
         $headers = $this->getConfig('headers') ?: [];
         $auth = $this->getConfig('auth');
         if ($auth && $auth['type'] === self::AUTH_TYPE_PASSPORT_CLIENT_CREDENTIALS) {
-            // Try to retrieve the access token from cache.
-            $key = 'laravel_api_model_driver|' . $this->getDatabaseName() . '|token';
-            $tokenData = Cache::get($key);
-            $ts = time();
-            if (!$tokenData || $tokenData['expires'] + 3600 > $ts) {
-                // Get a new access token.
-                curl_setopt($ch, CURLOPT_URL, $auth['url']);
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-                    'grant_type' => 'client_credentials',
-					'client_id' => $auth['client_id'],
-					'client_secret' => $auth['client_secret'],
-                ]));
-                curl_setopt($ch, CURLOPT_HTTPHEADER, []);
-                $result = curl_exec($ch);
-                if (!$result) {
-                    throw new RuntimeException('Failed to get access token from ' . $auth['url']);
-                }
-                $json = json_decode($result, true);
-                $tokenData = [
-                    'access_token' => $json['access_token'],
-                    'expires' => $ts + $json['expires_in'],
-                ];
+            // Get access token.
+            static $accessToken = null;
+            if (!$accessToken) {
+                // Try to retrieve the access token from cache.
+                $key = 'laravel_api_model_driver|' . $this->getDatabaseName() . '|token';
+                $tokenData = Cache::get($key);
+                $ts = time();
+                if (!$tokenData || $tokenData['expires'] + 3600 > $ts) {
+                    // Get a new access token.
+                    curl_setopt($ch, CURLOPT_URL, $auth['url']);
+                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                        'grant_type' => 'client_credentials',
+                        'client_id' => $auth['client_id'],
+                        'client_secret' => $auth['client_secret'],
+                    ]));
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, []);
+                    $result = curl_exec($ch);
+                    if (!$result) {
+                        throw new RuntimeException('Failed to get access token from ' . $auth['url']);
+                    }
+                    $json = json_decode($result, true);
+                    $tokenData = [
+                        'access_token' => $json['access_token'],
+                        'expires' => $ts + $json['expires_in'],
+                    ];
 
-                // Cache the token.
-                Cache::put($key, $tokenData, $json['expires_in']);
+                    // Cache the token.
+                    Cache::put($key, $tokenData, $json['expires_in']);
+                }
+                $accessToken = $tokenData['access_token'];
             }
+
+            // Add access token to headers.
+            $headers[] = "Authorization: Bearer $accessToken";
         }
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
