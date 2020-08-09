@@ -2,6 +2,8 @@
 
 namespace NazariiKretovych\LaravelApiModelDriver;
 
+use DateTime;
+use DateTimeZone;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Grammars\Grammar as GrammarBase;
 use RuntimeException;
@@ -33,11 +35,27 @@ class Grammar extends GrammarBase
             $key = $where['column'];
             switch ($where['type']) {
                 case 'Basic':
-                    $params[$key] = $where['value'];
+                    switch ($where['operator']) {
+                        case '=':
+                            $param = $key;
+                            break;
+
+                        case '>=':
+                            $param = "min_$key";
+                            break;
+
+                        case '<=':
+                            $param = "max_$key";
+                            break;
+
+                        default:
+                            throw new RuntimeException('Unsupported query where operator ' . $where['operator']);
+                    }
+                    $params[$param] = $this->filterKeyValue($key, $where['value']);
                     break;
 
                 case 'In':
-                    $params[$key] = $where['values'];
+                    $params[$key] = $this->filterKeyValue($key, $where['values']);
                     break;
 
                 // Support Laravel relationships.
@@ -46,12 +64,12 @@ class Grammar extends GrammarBase
                     if ($dotIx !== false) {
                         $key = substr($key, $dotIx + 1);
                     }
-                    $params[$key] = $where['values'];
+                    $params[$key] = $this->filterKeyValue($key, $where['values']);
                     break;
 
                 case 'between':
-                    $params["min_$key"] = $where['values'][0];
-                    $params["max_$key"] = $where['values'][1];
+                    $params["min_$key"] = $this->filterKeyValue($key, $where['values'][0]);
+                    $params["max_$key"] = $this->filterKeyValue($key, $where['values'][1]);
                     break;
 
                 default:
@@ -86,5 +104,34 @@ class Grammar extends GrammarBase
         }
 
         return $url;
+    }
+
+    /**
+     * @param string $key
+     * @param string|array|integer|null $value
+     * @return mixed
+     */
+    private function filterKeyValue($key, $value)
+    {
+        // Convert timezone.
+        $connTimezone = $this->config['timezone'] ?? null;
+        if ($connTimezone && in_array($key, $this->config['datetime_keys'])) {
+            $connDtZone = new DateTimeZone($connTimezone);
+            $appDtZone = new DateTimeZone(config('app.timezone'));
+            if (is_string($value)) {
+                if (strlen($value) === 19) {
+                    $value = (new DateTime($value, $connDtZone))->setTimezone($appDtZone)->format('Y-m-d H:i:s');
+                }
+            } else if (is_array($value)) {
+                $value = array_map(function ($value) use ($connDtZone, $appDtZone) {
+                    if (is_string($value) && strlen($value) === 19) {
+                        $value = (new DateTime($value, $connDtZone))->setTimezone($appDtZone)->format('Y-m-d H:i:s');
+                    }
+                    return $value;
+                }, $value);
+            }
+        }
+
+        return $value;
     }
 }
