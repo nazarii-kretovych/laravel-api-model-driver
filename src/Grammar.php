@@ -4,6 +4,7 @@ namespace NazariiKretovych\LaravelApiModelDriver;
 
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Grammars\Grammar as GrammarBase;
+use RuntimeException;
 
 class Grammar extends GrammarBase
 {
@@ -28,19 +29,37 @@ class Grammar extends GrammarBase
     {
         // Get params.
         $params = $this->config['default_params'] ?? [];
-        if ($query->limit) {
-            $params['per_page'] = $query->limit;
-        }
         foreach ($query->wheres as $where) {
             switch ($where['type']) {
                 case 'In':
                     $params[$where['column']] = $where['values'];
                     break;
 
+                case 'between':
+                    $params['min_' . $where['column']] = $where['values'][0];
+                    $params['max_' . $where['column']] = $where['values'][1];
+                    break;
+
                 default:
                     $params[$where['column']] = $where['value'];
                     break;
             }
+        }
+        if (!empty($query->orders)) {
+            if (count($query->orders) > 1) {
+                throw new RuntimeException('API query does not support multiple orders');
+            }
+            foreach ($query->orders as $order) {
+                $params['order_by'] = $order['column'];
+                if ($order['direction'] === 'desc') {
+                    $params['sort'] = 'desc';
+                } else {
+                    unset($params['sort']);
+                }
+            }
+        }
+        if ($query->limit) {
+            $params['per_page'] = $query->limit;
         }
 
         $url = "/$query->from";
