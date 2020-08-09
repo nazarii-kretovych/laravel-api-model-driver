@@ -114,7 +114,7 @@ class Connection extends ConnectionBase
             if ($connectionTimezone && !empty($allRows)) {
                 $appTimezone = config('app.timezone');
                 if ($connectionTimezone !== $appTimezone) {
-                    $configDatetimeKeys = $this->config('datetime_keys');
+                    $configDatetimeKeys = $this->getConfig('datetime_keys');
                     if (!empty($configDatetimeKeys)) {
                         // Get available datetime keys.
                         $datetimeKeys = [];
