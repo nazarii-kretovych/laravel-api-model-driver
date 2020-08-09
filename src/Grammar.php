@@ -120,12 +120,12 @@ class Grammar extends GrammarBase
             $appDtZone = new DateTimeZone(config('app.timezone'));
             if (is_string($value)) {
                 if (strlen($value) === 19) {
-                    $value = (new DateTime($value, $connDtZone))->setTimezone($appDtZone)->format('Y-m-d H:i:s');
+                    $value = (new DateTime($value, $appDtZone))->setTimezone($connDtZone)->format('Y-m-d H:i:s');
                 }
             } else if (is_array($value)) {
                 $value = array_map(function ($value) use ($connDtZone, $appDtZone) {
                     if (is_string($value) && strlen($value) === 19) {
-                        $value = (new DateTime($value, $connDtZone))->setTimezone($appDtZone)->format('Y-m-d H:i:s');
+                        $value = (new DateTime($value, $appDtZone))->setTimezone($connDtZone)->format('Y-m-d H:i:s');
                     }
                     return $value;
                 }, $value);
