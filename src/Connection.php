@@ -2,6 +2,8 @@
 
 namespace NazariiKretovych\LaravelApiModelDriver;
 
+use DateTime;
+use DateTimeZone;
 use Illuminate\Database\Connection as ConnectionBase;
 use Illuminate\Database\Grammar as GrammerBase;
 use Illuminate\Support\Facades\Cache;
@@ -105,11 +107,55 @@ class Connection extends ConnectionBase
                     }
                 }
             }
+            unset($json);
+
+            // Convert timezone in datetime keys.
+            $connectionTimezone = $this->getConfig('timezone');
+            if ($connectionTimezone && !empty($allRows)) {
+                $appTimezone = config('app.timezone');
+                if ($connectionTimezone !== $appTimezone) {
+                    $configDatetimeKeys = $this->config('datetime_keys');
+                    if (!empty($configDatetimeKeys)) {
+                        // Get available datetime keys.
+                        $datetimeKeys = [];
+                        $firstRow = $allRows[0];
+                        foreach ($configDatetimeKeys as $key) {
+                            if (array_key_exists($key, $firstRow)) {
+                                $datetimeKeys[] = $key;
+                                break;
+                            }
+                        }
+                        if (!empty($datetimeKeys)) {
+                            $connDtZone = new DateTimeZone($connectionTimezone);
+                            $appDtZone = new DateTimeZone($appTimezone);
+
+                            // Convert timezone for each object.
+                            foreach ($allRows as &$pRow) {
+                                foreach ($datetimeKeys as $key) {
+                                    $connValue = $pRow[$key];
+
+                                    // Check if it is a correct datetime in 'Y-m-d H:i:s' format.
+                                    if ($connValue != '' && strlen($connValue) === 19 && $connValue !== '0000-00-00 00:00:00') {
+                                        // Convert and save.
+                                        $dt = new DateTime($connValue, $connDtZone);
+                                        $dt->setTimezone($appDtZone);
+                                        $pRow[$key] = $dt->format('Y-m-d H:i:s');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             return $allRows;
         });
     }
-    
+
+    /**
+     * @param string $url
+     * @return array
+     */
     private function getJsonByUrl($url)
     {
         // Get curl handler.
