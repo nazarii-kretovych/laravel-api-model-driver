@@ -52,8 +52,13 @@ class Str
         foreach (explode('&', $query) as $queryPart) {
             $parts = explode('=', $queryPart);
             if (count($parts) === 2) {
-                $key = self::endsWith($parts[0], '[]') ? substr($parts[0], 0, -2) : $parts[0];
-                $params[$key] = urldecode($parts[1]);
+                $key = $parts[0];
+                $value = urldecode($parts[1]);
+                if (self::endsWith($key, '[]')) {
+                    $params[substr($key, 0, -2)][] = $value;
+                } else {
+                    $params[$key] = $value;
+                }
             }
         }
 
