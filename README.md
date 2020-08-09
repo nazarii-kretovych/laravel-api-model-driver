@@ -12,6 +12,7 @@ There is also a possibility to configure automatic time zone conversion in case 
 - Automatic time zone conversion for time JSON properties and time query parameters;
 - Possibility to define multiple API connections with their own configuration and authentication;
 - Automatic splitting query strings whose length is too long (see the **max_url_length** parameter);
+- The library makes API calls using the **php-curl** extension so that the subsequent requests reuse the connection that was established during the first request without wasting time on establishing new connections.
 
 ## Installation
 Install the library using composer:
