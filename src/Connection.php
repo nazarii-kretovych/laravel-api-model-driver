@@ -129,9 +129,8 @@ class Connection extends ConnectionBase
             if (!$accessToken) {
                 // Try to retrieve the access token from cache.
                 $key = 'laravel_api_model_driver|' . $this->getDatabaseName() . '|token';
-                $tokenData = Cache::get($key);
-                $ts = time();
-                if (!$tokenData || $tokenData['expires'] + 3600 > $ts) {
+                $accessToken = Cache::get($key);
+                if (!$accessToken) {
                     // Get a new access token.
                     curl_setopt($ch, CURLOPT_URL, $auth['url']);
                     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
@@ -146,15 +145,11 @@ class Connection extends ConnectionBase
                         throw new RuntimeException('Failed to get access token from ' . $auth['url']);
                     }
                     $json = json_decode($result, true);
-                    $tokenData = [
-                        'access_token' => $json['access_token'],
-                        'expires' => $ts + $json['expires_in'],
-                    ];
+                    $accessToken = $json['access_token'];
 
                     // Cache the token.
-                    Cache::put($key, $tokenData, $json['expires_in']);
+                    Cache::put($key, $accessToken, (int)(0.75 * $json['expires_in']));
                 }
-                $accessToken = $tokenData['access_token'];
             }
 
             // Add access token to headers.
