@@ -84,7 +84,7 @@ class Connection extends ConnectionBase
                     while (count($json['data']) === $max_per_page) {
                         $page++;
                         $nextUrl = preg_replace('#(\?|&)page=\d+#', "$1page=$page", $url, 1);
-                        if ($nextUrl !== $url) {
+                        if ($nextUrl === $url) {
                             if (strpos($nextUrl, '?') !== false) {
                                 $nextUrl .= '&';
                             } else {
