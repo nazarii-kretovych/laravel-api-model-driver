@@ -122,7 +122,6 @@ class Connection extends ConnectionBase
                         foreach ($configDatetimeKeys as $key) {
                             if (array_key_exists($key, $firstRow)) {
                                 $datetimeKeys[] = $key;
-                                break;
                             }
                         }
                         if (!empty($datetimeKeys)) {
