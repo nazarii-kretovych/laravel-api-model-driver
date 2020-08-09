@@ -47,7 +47,7 @@ class Connection extends ConnectionBase
                 if ($questionIx === false) {
                     throw new RuntimeException('Long URLs should have query string');
                 }
-                parse_str(substr($fullUrl, $questionIx + 1), $params);
+                $params = Str::parseQuery(substr($fullUrl, $questionIx + 1));
 
                 // Get key with max. number of values.
                 $keyWithMaxCnt = null;

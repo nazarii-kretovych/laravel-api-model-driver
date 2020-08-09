@@ -42,7 +42,30 @@ class Str
 		return $query;
 	}
 
-    private static function endsWith($haystack, $needle)
+    /**
+     * @param string $query
+     * @return array
+     */
+    public static function parseQuery($query)
+    {
+        $params = [];
+        foreach (explode('&', $query) as $queryPart) {
+            $parts = explode('=', $queryPart);
+            if (count($parts) === 2) {
+                $key = self::endsWith($parts[0], '[]') ? substr($parts[0], 0, -2) : $parts[0];
+                $params[$key] = urldecode($parts[1]);
+            }
+        }
+
+        return $params;
+    }
+
+    /**
+     * @param string $haystack
+     * @param string $needle
+     * @return boolean
+     */
+    public static function endsWith($haystack, $needle)
     {
         $length = strlen($needle);
         if ($length) {
