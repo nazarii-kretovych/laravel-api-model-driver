@@ -31,6 +31,10 @@ class Grammar extends GrammarBase
         $params = $this->config['default_params'] ?? [];
         foreach ($query->wheres as $where) {
             switch ($where['type']) {
+                case 'Basic':
+                    $params[$where['column']] = $where['value'];
+                    break;
+
                 case 'In':
                     $params[$where['column']] = $where['values'];
                     break;
@@ -41,8 +45,7 @@ class Grammar extends GrammarBase
                     break;
 
                 default:
-                    $params[$where['column']] = $where['value'];
-                    break;
+                    throw new RuntimeException('Unsupported query where type ' . $where['type']);
             }
         }
         if (!empty($query->orders)) {
