@@ -90,6 +90,9 @@ class Grammar extends GrammarBase
             }
         }
         if ($query->limit) {
+            if ($query->limit >= $params['per_page']) {
+                throw new RuntimeException('Query limit should be less than ' . $params['per_page']);
+            }
             $params['per_page'] = $query->limit;
         }
 
