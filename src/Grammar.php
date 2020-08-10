@@ -32,7 +32,22 @@ class Grammar extends GrammarBase
         // Get params.
         $params = $this->config['default_params'] ?? [];
         foreach ($query->wheres as $where) {
+            // Get key and strip table name.
             $key = $where['column'];
+            $dotIx = strrpos($key, '.');
+            if ($dotIx !== false) {
+                $key = substr($key, $dotIx + 1);
+
+                // If the key has dot and type = 'Basic', we need to change type to 'In'.
+                // This fixes lazy loads.
+                if ($where['type'] === 'Basic') {
+                    $where['type'] = 'In';
+                    $where['values'] = [$where['value']];
+                    unset($where['value']);
+                }
+            }
+
+            // Check where type.
             switch ($where['type']) {
                 case 'Basic':
                     switch ($where['operator']) {
@@ -55,15 +70,7 @@ class Grammar extends GrammarBase
                     break;
 
                 case 'In':
-                    $params[$key] = $this->filterKeyValue($key, $where['values']);
-                    break;
-
-                // Support Laravel relationships.
                 case 'InRaw':
-                    $dotIx = strrpos($key, '.');
-                    if ($dotIx !== false) {
-                        $key = substr($key, $dotIx + 1);
-                    }
                     $params[$key] = $this->filterKeyValue($key, $where['values']);
                     break;
 
