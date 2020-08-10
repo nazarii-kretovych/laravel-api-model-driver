@@ -72,6 +72,10 @@ class Grammar extends GrammarBase
                     $params["max_$key"] = $this->filterKeyValue($key, $where['values'][1]);
                     break;
 
+                // Ignore the following where types.
+                case 'NotNull':
+                    break;
+
                 default:
                     throw new RuntimeException('Unsupported query where type ' . $where['type']);
             }
