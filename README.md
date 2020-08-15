@@ -95,7 +95,7 @@ class Article extends Model
 ```php
 <?php
 
-Article::with('dbModel', 'apiModel.anotherApiModel')
+Article::with(['dbModel', 'apiModel.anotherApiModel'])
     ->where('status', 'published')
     ->whereIn('author_id', [1, 2])
     ->whereBetween('publish_time', ['2020-08-01 00:00:00', '2020-08-04 23:59:59'])
