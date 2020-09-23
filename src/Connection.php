@@ -25,13 +25,18 @@ class Connection extends ConnectionBase
     }
 
     /**
-     * @param string $query E.g. /articles?status=published
+     * @param string|false $query E.g. /articles?status=published
      * @param mixed[] $bindings
      * @param bool $useReadPdo
      * @return mixed[]
      */
     public function select($query, $bindings = [], $useReadPdo = true)
     {
+        // Check query.
+        if (!$query) {
+            return [];
+        }
+
         return $this->run($query, $bindings, function ($query) {
             // Get connection configuration.
             $maxPerPage = $this->getConfig('default_params')['per_page'];

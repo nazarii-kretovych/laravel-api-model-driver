@@ -25,7 +25,7 @@ class Grammar extends GrammarBase
 
     /**
      * @param Builder $query
-     * @return string
+     * @return string|false
      */
     public function compileSelect(Builder $query): string
     {
@@ -110,11 +110,15 @@ class Grammar extends GrammarBase
         $url = "/$query->from";
         if (!empty($params)) {
             $url .= '?';
-            $url .= Str::httpBuildQuery(
+            $queryStr = Str::httpBuildQuery(
                 $params,
                 !empty($this->config['pluralize_array_query_params']),
                 $this->config['pluralize_except'] ?? [],
             );
+            if ($queryStr === false) {
+                return false;
+            }
+            $url .= $queryStr;
         }
 
         return $url;
