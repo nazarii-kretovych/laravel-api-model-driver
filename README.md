@@ -1,26 +1,33 @@
 # Laravel API Model Driver
-The library allows to create and assign an API connection to Laravel 7 Eloquent models and use Laravel query builder to build a query string and get data as if you get data from a database connection. It also allows to use Eloquent relationships.
 
-Once developers define the configuration of a new API connection and make the related model classes use that connection, they don't need to think about API calls, authentication, etc. They just work with those models as if they are regular models that have a MySQL connection. However, the library only supports retrieving data from an API service.
+This library makes it easier to connect and use APIs with Laravel Eloquent models. You can build and get data from APIs just like you would from a database. It also works with Eloquent relationships.
 
-There is also a possibility to configure automatic time zone conversion in case the API service provides the clients with time values in a different time zone so that the developers don't need to think about it while they are writing code.
+You set up the API connection and link it to model classes. Then, you can use these models like regular database models, without worrying about API details or logins. But, this library only gets data from APIs, it doesn't send data back.
+
+It also changes time zones automatically, which is helpful if the API's time zone is different. This saves you from having to adjust time zones manually.
 
 ## Features
-- Support the following query builder functions: **where**, **whereIn**, **whereBetween**, **orderBy** and **limit**;
-- Support Eloquent relationships;
-- Automatic pluralization of the name of a query parameter that has an array;
-- Automatic time zone conversion for time JSON properties and time query parameters;
-- Possibility to define multiple API connections with their own configuration and authentication;
-- Automatic splitting query strings whose length is too long (see the **max_url_length** parameter);
-- The library makes API calls using the **php-curl** extension so that the subsequent requests reuse the connection that was established during the first request without wasting time on establishing new connections.
+
+Here's what the library offers for working with APIs in Laravel:
+
+* **Query Builder**: Supports functions like `where`, `whereIn`, `whereBetween`, `orderBy`, and `limit`.
+* **Eloquent Relationships**: Works well with Eloquent relationships.
+* **Automatic Pluralization**: Automatically changes the name of a query parameter to plural if it's an array.
+* **Auto Time Zone Change**: Converts time data to the right time zone automatically.
+* **Several API Connections**: You can set up different API connections with their own settings.
+* **Query String Splitting**: If a query string is too long, the library splits it up. See the `max_url_length` setting.
+* **Efficient API Calls with php-curl**: Uses `php-curl` to make faster API calls by reusing connections.
 
 ## Installation
+
 Install the library using composer:
+
 ```bash
 composer require nazarii-kretovych/laravel-api-model-driver
 ```
 
 ## Configuration
+
 Open **config/database.php** and add a new API connection:
 
 ```php
@@ -87,24 +94,38 @@ use Illuminate\Database\Eloquent\Model;
 class Article extends Model
 {
     protected $connection = 'example_com_api';
-    protected $table = 'articles';  // optional. Laravel generates it from the name of the class
+
+    // (Optional) You can set the table name if it's different from the pluralized model name.
+    // Laravel would use this by default for this model:
+    protected $table = 'articles';
 }
 ```
 
 ## Usage
+
+Using the Eloquent model you can retrieve data from the API service as if it were a database:
+
 ```php
 <?php
 
-Article::with(['dbModel', 'apiModel.anotherApiModel'])
+$query = Article::with(['dbModel', 'apiModel.anotherApiModel'])
     ->where('status', 'published')
     ->whereIn('author_id', [1, 2])
     ->whereBetween('publish_time', ['2020-08-01 00:00:00', '2020-08-04 23:59:59'])
     ->where('id', '>=', 3)
-    ->where('id', '<=', 24);
+    ->where('id', '<=', 24)
     ->orderBy('publish_time', 'desc')
-    ->limit(20)
-    ->get();
+    ->limit(20);
 
-// The library will generate the following URL for retrieving articles:
+// Perform the API request and retrieve the specified articles.
+$articles = $query->get();
+```
+
+To see which URL the library generates, you can use the `toSql()` method:
+
+```php
+$url = $query->toSql();
+
+echo $url;
 // https://example.com/api/articles?status=published&author_ids[]=1&author_ids[]=2&min_publish_time=2020-08-01+00%3A00%3A00&max_publish_time=2020-08-04+23%3A59%3A59&min_id=3&max_id=24&order_by=publish_time&sort=desc&per_page=20
 ```
